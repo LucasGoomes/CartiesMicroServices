@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.Features;
 
 namespace AuctionService.Entities;
 
+// Represents an auction - a table in the database
 public class Auction
 {
     public Guid Id { get; set; }
