@@ -1,5 +1,6 @@
 using AuctionService.Data;
 using AuctionService.DTOs;
+using AuctionService.Entities;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,8 +18,8 @@ public class AuctionController : ControllerBase
     // We need the db context to access the database
     public AuctionController(AuctionDbContext context, IMapper mapper)
     {
-        this._context = context;
-        this._mapper = mapper;
+        _context = context;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -42,5 +43,20 @@ public class AuctionController : ControllerBase
         if (auction == null) return NotFound();
 
         return _mapper.Map<AuctionDto>(auction);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto createAuctionDto)
+    {
+        var auction = _mapper.Map<Auction>(createAuctionDto);
+        // TODO: add current user as seller
+        auction.Seller = "currentUserId";
+
+        _context.Auctions.Add(auction);
+        var result = await _context.SaveChangesAsync() > 0;
+
+        if (!result) return BadRequest("Failed to create auction");
+        // Return that the auction was created and tells the client where to find it - nameof(GetAuctionById)
+        return CreatedAtAction(nameof(GetAuctionById), new { id = auction.Id }, _mapper.Map<AuctionDto>(auction));
     }
 }
